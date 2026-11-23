@@ -1,0 +1,28 @@
+meta {
+  name: Change status (admin)
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/api/orders/{{orderId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "status": "PAID"
+  }
+}
+
+tests {
+  test("статус изменён", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.status).to.equal("PAID");
+  });
+}

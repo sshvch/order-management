@@ -1,0 +1,28 @@
+meta {
+  name: Add item
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/cart/items
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "productId": 1,
+    "quantity": 2
+  }
+}
+
+tests {
+  test("товар в корзине", function () {
+    expect(res.status).to.equal(200);
+  });
+}

@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: order-management-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: order_management
+      POSTGRES_USER: orderhub
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-orderhub123}
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U orderhub -d order_management" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: order-management-app
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/order_management
+      DB_USER: orderhub
+      DB_PASSWORD: ${DB_PASSWORD:-orderhub123}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key-change-me-please-32-bytes-minimum}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@orderhub.local}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:-admin123}
+
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

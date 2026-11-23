@@ -1,0 +1,31 @@
+meta {
+  name: Create product (admin)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/products
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "name": "Тестовый товар",
+    "description": "Создан из Bruno",
+    "price": 1234.50,
+    "stockQuantity": 5,
+    "categoryId": 1
+  }
+}
+
+tests {
+  test("товар создан", function () {
+    expect(res.status).to.equal(201);
+  });
+}

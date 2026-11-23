@@ -1,0 +1,59 @@
+package ru.orderhub.order_management.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+import ru.orderhub.order_management.user.entity.Role;
+import ru.orderhub.order_management.user.entity.User;
+import ru.orderhub.order_management.user.repository.UserRepository;
+
+/**
+ * Создаёт администратора при первом запуске, чтобы было с кем зайти в админские эндпоинты.
+ * Email и пароль берутся из переменных окружения APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD.
+ */
+@Component
+public class AdminInitializer implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(AdminInitializer.class);
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.admin.enabled:true}")
+    private boolean enabled;
+
+    @Value("${app.admin.email}")
+    private String adminEmail;
+
+    @Value("${app.admin.password}")
+    private String adminPassword;
+
+    public AdminInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @Override
+    public void run(String... args) {
+        if (!enabled) {
+            return;
+        }
+
+        String email = adminEmail.trim().toLowerCase();
+
+        if (userRepository.existsByEmail(email)) {
+            return;
+        }
+
+        User admin = new User();
+        admin.setEmail(email);
+        admin.setPassword(passwordEncoder.encode(adminPassword));
+        admin.setRole(Role.ADMIN);
+        userRepository.save(admin);
+
+        log.info("Создан администратор: {}", email);
+    }
+}

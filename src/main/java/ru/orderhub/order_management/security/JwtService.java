@@ -7,7 +7,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import ru.orderhub.order_management.user.entity.User;
+import ru.orderhub.order_management.entity.User;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;

@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import ru.orderhub.order_management.user.entity.Role;
-import ru.orderhub.order_management.user.entity.User;
-import ru.orderhub.order_management.user.repository.UserRepository;
+import ru.orderhub.order_management.entity.Role;
+import ru.orderhub.order_management.entity.User;
+import ru.orderhub.order_management.repository.UserRepository;
 
 /**
  * Создаёт администратора при первом запуске, чтобы было с кем зайти в админские эндпоинты.

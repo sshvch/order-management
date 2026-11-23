@@ -4,8 +4,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.orderhub.order_management.user.entity.User;
-import ru.orderhub.order_management.user.repository.UserRepository;
+import ru.orderhub.order_management.entity.User;
+import ru.orderhub.order_management.repository.UserRepository;
 
 /**
  * Spring Security не знает про нашу таблицу users, поэтому учим его искать пользователя по email.

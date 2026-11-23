@@ -271,24 +271,47 @@ curl -X PATCH "$BASE/api/orders/1/status" \
 
 ## Структура проекта
 
+Проект разделён на три классических слоя: **controller → service → repository**.
+
 ```
 src/main/java/ru/orderhub/order_management
 ├── OrderManagementApplication.java
-├── common
-│   ├── dto/PageResponse.java
-│   └── exception/          # свои исключения и @RestControllerAdvice
-├── config
-│   ├── SecurityConfig.java
-│   ├── OpenApiConfig.java
-│   └── AdminInitializer.java
-├── security               # JWT: генерация, фильтр, UserDetailsService
-├── user                   # регистрация, вход, роли
-├── product                # товары и категории
-├── cart                   # корзина и её позиции
-└── order                  # заказы и позиции заказа
+├── controller/            # REST-контроллеры: принимают запрос и отдают ответ
+│   ├── AuthController.java
+│   ├── ProductController.java
+│   ├── CategoryController.java
+│   ├── CartController.java
+│   └── OrderController.java
+├── service/               # бизнес-логика и транзакции
+│   ├── AuthService.java
+│   ├── ProductService.java
+│   ├── CategoryService.java
+│   ├── CartService.java
+│   └── OrderService.java
+├── repository/            # Spring Data JPA: запросы к базе
+│   ├── UserRepository.java
+│   ├── ProductRepository.java
+│   ├── CategoryRepository.java
+│   ├── CartRepository.java
+│   ├── CartItemRepository.java
+│   └── OrderRepository.java
+├── entity/                # сущности БД
+├── dto/                   # request/response объекты
+├── exception/             # свои исключения и @RestControllerAdvice
+├── security/              # JWT: генерация, фильтр, UserDetailsService
+└── config/                # Security, Swagger, создание админа при старте
 ```
 
-Пакеты сгруппированы по фичам, внутри каждого — `entity`, `repository`, `service`, `controller`, `dto`.
+Как проходит запрос:
+
+1. **Controller** принимает HTTP-запрос, проверяет `@Valid` и вызывает сервис.
+   В контроллере нет работы с базой.
+2. **Service** содержит бизнес-логику: проверки, расчёты, `@Transactional`.
+3. **Repository** общается с базой через Spring Data JPA.
+4. **Entity** — таблицы базы, **DTO** — то, что уходит клиенту и приходит от него.
+
+Контроллеры не зависят от репозиториев напрямую, а репозитории не знают про HTTP.
+Так проект проще тестировать и менять.
 
 ---
 

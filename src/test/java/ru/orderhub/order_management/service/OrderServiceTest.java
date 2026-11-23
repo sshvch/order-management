@@ -16,6 +16,7 @@ import ru.orderhub.order_management.entity.OrderItem;
 import ru.orderhub.order_management.entity.OrderStatus;
 import ru.orderhub.order_management.repository.OrderRepository;
 import ru.orderhub.order_management.entity.Product;
+import ru.orderhub.order_management.repository.ProductRepository;
 import ru.orderhub.order_management.entity.User;
 import ru.orderhub.order_management.repository.UserRepository;
 
@@ -38,6 +39,9 @@ class OrderServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ProductRepository productRepository;
 
     @InjectMocks
     private OrderService orderService;
@@ -67,6 +71,7 @@ class OrderServiceTest {
 
         when(userRepository.findByEmail("user@orderhub.local")).thenReturn(Optional.of(user));
         when(cartRepository.findByUserEmail("user@orderhub.local")).thenReturn(Optional.of(cart));
+        when(productRepository.decreaseStock(10L, 3)).thenReturn(1);
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         OrderResponse response = orderService.createOrder("user@orderhub.local");
@@ -75,8 +80,8 @@ class OrderServiceTest {
         assertThat(response.status()).isEqualTo("CREATED");
         assertThat(response.items()).hasSize(1);
 
-        // Остаток уменьшился, корзина очистилась.
-        assertThat(product.getStockQuantity()).isEqualTo(7);
+        // Остаток списывается атомарным запросом, корзина очищается.
+        verify(productRepository).decreaseStock(10L, 3);
         assertThat(cart.getItems()).isEmpty();
 
         verify(orderRepository).save(any(Order.class));
@@ -90,6 +95,8 @@ class OrderServiceTest {
 
         when(userRepository.findByEmail("user@orderhub.local")).thenReturn(Optional.of(user));
         when(cartRepository.findByUserEmail("user@orderhub.local")).thenReturn(Optional.of(cart));
+        when(productRepository.decreaseStock(10L, 50)).thenReturn(0);
+        when(productRepository.findStockQuantityById(10L)).thenReturn(0);
 
         assertThatThrownBy(() -> orderService.createOrder("user@orderhub.local"))
                 .isInstanceOf(BadRequestException.class)
@@ -97,7 +104,6 @@ class OrderServiceTest {
 
         // Заказ не сохранился, остаток не изменился.
         verify(orderRepository, never()).save(any(Order.class));
-        assertThat(product.getStockQuantity()).isEqualTo(10);
     }
 
     @Test
@@ -115,8 +121,6 @@ class OrderServiceTest {
 
     @Test
     void cancelOrderReturnsProductsToStock() {
-        product.setStockQuantity(7);
-
         Order order = new Order(user);
         order.setId(1L);
         order.addItem(new OrderItem(product, product.getName(), product.getPrice(), 3));
@@ -126,7 +130,7 @@ class OrderServiceTest {
         OrderResponse response = orderService.updateStatus(1L, OrderStatus.CANCELLED);
 
         assertThat(response.status()).isEqualTo("CANCELLED");
-        assertThat(product.getStockQuantity()).isEqualTo(10);
+        verify(productRepository).increaseStock(10L, 3);
     }
 
     @Test

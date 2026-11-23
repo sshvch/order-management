@@ -19,6 +19,7 @@ import ru.orderhub.order_management.entity.OrderItem;
 import ru.orderhub.order_management.entity.OrderStatus;
 import ru.orderhub.order_management.repository.OrderRepository;
 import ru.orderhub.order_management.entity.Product;
+import ru.orderhub.order_management.repository.ProductRepository;
 import ru.orderhub.order_management.entity.User;
 import ru.orderhub.order_management.repository.UserRepository;
 
@@ -32,13 +33,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     public OrderService(OrderRepository orderRepository,
                         CartRepository cartRepository,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,
+                        ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
     }
 
     /**
@@ -47,6 +51,9 @@ public class OrderService {
      * Всё происходит в одной транзакции: создаём заказ, создаём позиции,
      * уменьшаем остатки и очищаем корзину. Если на любом шаге вылетит исключение,
      * Spring откатит всё — и остатки товаров тоже вернутся на место.
+     *
+     * Остаток списывается атомарным UPDATE ... WHERE stock_quantity >= :quantity.
+     * Поэтому два одновременных заказа не смогут продать последний товар дважды.
      */
     @Transactional
     public OrderResponse createOrder(String email) {
@@ -69,15 +76,16 @@ public class OrderService {
                 throw new BadRequestException("Товар \"" + product.getName() + "\" больше не продаётся");
             }
 
-            if (cartItem.getQuantity() > product.getStockQuantity()) {
+            // Проверка остатка и списание — один SQL-запрос.
+            // Если обновилось 0 строк, значит товара уже не хватает.
+            int updated = productRepository.decreaseStock(product.getId(), cartItem.getQuantity());
+            if (updated == 0) {
+                Integer stock = productRepository.findStockQuantityById(product.getId());
                 throw new BadRequestException(
                         "Недостаточно товара \"" + product.getName() + "\". На складе: "
-                                + product.getStockQuantity()
+                                + (stock != null ? stock : 0)
                 );
             }
-
-            // Меняем остаток прямо у сущности из базы — Hibernate сохранит это при commit.
-            product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
 
             OrderItem orderItem = new OrderItem(
                     product,
@@ -163,8 +171,7 @@ public class OrderService {
 
     private void restoreStock(Order order) {
         for (OrderItem item : order.getItems()) {
-            Product product = item.getProduct();
-            product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+            productRepository.increaseStock(item.getProduct().getId(), item.getQuantity());
         }
     }
 

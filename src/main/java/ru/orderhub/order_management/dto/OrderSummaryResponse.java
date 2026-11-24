@@ -5,10 +5,6 @@ import ru.orderhub.order_management.entity.Order;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Короткая карточка заказа для списка — без позиций,
- * чтобы не тянуть из базы лишние данные.
- */
 public record OrderSummaryResponse(
         Long id,
         String status,

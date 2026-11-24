@@ -45,16 +45,6 @@ public class OrderService {
         this.productRepository = productRepository;
     }
 
-    /**
-     * Оформление заказа из корзины.
-     *
-     * Всё происходит в одной транзакции: создаём заказ, создаём позиции,
-     * уменьшаем остатки и очищаем корзину. Если на любом шаге вылетит исключение,
-     * Spring откатит всё — и остатки товаров тоже вернутся на место.
-     *
-     * Остаток списывается атомарным UPDATE ... WHERE stock_quantity >= :quantity.
-     * Поэтому два одновременных заказа не смогут продать последний товар дважды.
-     */
     @Transactional
     public OrderResponse createOrder(String email) {
         User user = findUser(email);
@@ -76,8 +66,6 @@ public class OrderService {
                 throw new BadRequestException("Товар \"" + product.getName() + "\" больше не продаётся");
             }
 
-            // Проверка остатка и списание — один SQL-запрос.
-            // Если обновилось 0 строк, значит товара уже не хватает.
             int updated = productRepository.decreaseStock(product.getId(), cartItem.getQuantity());
             if (updated == 0) {
                 Integer stock = productRepository.findStockQuantityById(product.getId());
@@ -134,7 +122,6 @@ public class OrderService {
         Order order = orderRepository.findByIdWithItems(id)
                 .orElseThrow(() -> new NotFoundException("Заказ не найден: " + id));
 
-        // Обычный пользователь видит только свои заказы.
         if (!admin && !order.getUser().getEmail().equals(email)) {
             throw new AccessDeniedException("Нет доступа к этому заказу");
         }
@@ -142,10 +129,6 @@ public class OrderService {
         return OrderResponse.from(order);
     }
 
-    /**
-     * Смена статуса заказа (для админа).
-     * Если заказ отменяют — возвращаем товары на склад.
-     */
     @Transactional
     public OrderResponse updateStatus(Long id, OrderStatus newStatus) {
         Order order = orderRepository.findByIdWithItems(id)
@@ -175,9 +158,6 @@ public class OrderService {
         }
     }
 
-    /**
-     * Какие переходы статусов разрешены.
-     */
     private boolean isAllowedTransition(OrderStatus from, OrderStatus to) {
         return switch (from) {
             case CREATED -> to == OrderStatus.PAID || to == OrderStatus.CANCELLED;

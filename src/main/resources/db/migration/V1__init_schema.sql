@@ -1,6 +1,3 @@
--- Начальная схема базы данных.
--- Таблицы соответствуют Entity-классам в пакетах user, product, cart, order.
-
 create table users (
     id         bigserial primary key,
     email      varchar(255) not null unique,

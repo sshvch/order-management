@@ -10,10 +10,6 @@ import ru.orderhub.order_management.entity.Role;
 import ru.orderhub.order_management.entity.User;
 import ru.orderhub.order_management.repository.UserRepository;
 
-/**
- * Создаёт администратора при первом запуске, чтобы было с кем зайти в админские эндпоинты.
- * Email и пароль берутся из переменных окружения APP_ADMIN_EMAIL / APP_ADMIN_PASSWORD.
- */
 @Component
 public class AdminInitializer implements CommandLineRunner {
 

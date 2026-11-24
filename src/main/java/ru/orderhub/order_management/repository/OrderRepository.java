@@ -13,10 +13,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findByUserEmail(String email, Pageable pageable);
 
-    /**
-     * Заказ вместе с позициями и товарами — для карточки заказа.
-     * Для списка заказов позиции не нужны, поэтому там обычный запрос.
-     */
     @Query("""
             select distinct o from Order o
             left join fetch o.items i

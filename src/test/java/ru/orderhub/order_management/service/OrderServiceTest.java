@@ -80,7 +80,6 @@ class OrderServiceTest {
         assertThat(response.status()).isEqualTo("CREATED");
         assertThat(response.items()).hasSize(1);
 
-        // Остаток списывается атомарным запросом, корзина очищается.
         verify(productRepository).decreaseStock(10L, 3);
         assertThat(cart.getItems()).isEmpty();
 
@@ -102,7 +101,6 @@ class OrderServiceTest {
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Недостаточно товара");
 
-        // Заказ не сохранился, остаток не изменился.
         verify(orderRepository, never()).save(any(Order.class));
     }
 

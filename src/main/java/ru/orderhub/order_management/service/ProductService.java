@@ -28,10 +28,6 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
     }
 
-    /**
-     * Список товаров с поиском по названию и пагинацией.
-     * Показываем только активные товары.
-     */
     @Transactional(readOnly = true)
     public PageResponse<ProductResponse> getAll(String search, int page, int size) {
         validatePaging(page, size);
@@ -66,14 +62,9 @@ public class ProductService {
         Product product = findProduct(id);
         applyRequest(product, request);
 
-        // Менять сущность под @Transactional достаточно, save() не обязателен.
         return ProductResponse.from(product);
     }
 
-    /**
-     * Мягкое удаление: товар скрывается из каталога, но остаётся в старых заказах.
-     * Так мы не ломаем внешние ключи у order_items.
-     */
     @Transactional
     public void delete(Long id) {
         Product product = findProduct(id);

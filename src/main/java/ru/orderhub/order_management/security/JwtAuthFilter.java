@@ -17,11 +17,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Читает заголовок Authorization: Bearer <token>.
- * Если токен нормальный — кладёт пользователя в SecurityContext,
- * и дальше Spring Security сам решает, можно ли пускать в эндпоинт.
- */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
@@ -50,7 +45,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         try {
             String email = jwtService.extractEmail(token);
 
-            // Если пользователь ещё не авторизован в этом запросе — проверяем токен.
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
@@ -66,8 +60,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException | IllegalArgumentException | UsernameNotFoundException exception) {
-            // Токен битый или просроченный — запрос просто останется анонимным.
-            // Дальше Spring Security вернёт 401, если эндпоинт защищён.
             SecurityContextHolder.clearContext();
         }
 

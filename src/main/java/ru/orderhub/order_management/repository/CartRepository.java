@@ -8,9 +8,6 @@ import java.util.Optional;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
-    /**
-     * Корзина сразу приходит вместе с позициями и товарами.
-     */
     @EntityGraph(attributePaths = {"items", "items.product"})
     Optional<Cart> findByUserEmail(String email);
 }

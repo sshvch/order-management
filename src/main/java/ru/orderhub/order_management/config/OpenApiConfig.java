@@ -8,10 +8,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Настройка Swagger UI.
- * Добавляем кнопку Authorize, чтобы можно было вставить JWT и тестировать защищённые эндпоинты.
- */
 @Configuration
 public class OpenApiConfig {
 

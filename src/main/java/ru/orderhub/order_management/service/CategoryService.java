@@ -64,7 +64,6 @@ public class CategoryService {
     public void delete(Long id) {
         Category category = findCategory(id);
 
-        // Не даём удалить категорию, на которую ссылаются товары.
         if (productRepository.existsByCategoryId(id)) {
             throw new BadRequestException("Нельзя удалить категорию, в которой есть товары");
         }

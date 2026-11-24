@@ -39,9 +39,6 @@ public class CartService {
         return CartResponse.from(findOrCreateCart(email));
     }
 
-    /**
-     * Если такой товар уже лежит в корзине — увеличиваем количество.
-     */
     @Transactional
     public CartResponse addItem(String email, AddCartItemRequest request) {
         Cart cart = findOrCreateCart(email);
@@ -88,7 +85,6 @@ public class CartService {
                 .orElseThrow(() -> new NotFoundException("Позиция корзины не найдена: " + itemId));
 
         Cart cart = item.getCart();
-        // orphanRemoval удалит позицию из базы, когда Hibernate сделает flush.
         cart.getItems().remove(item);
 
         return CartResponse.from(cart);

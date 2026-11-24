@@ -5,11 +5,6 @@ import ru.orderhub.order_management.entity.Product;
 
 import java.math.BigDecimal;
 
-/**
- * Позиция заказа.
- * Название и цена сохраняются отдельно: если товар подорожает или его переименуют,
- * старый заказ всё равно покажет те данные, по которым его оформили.
- */
 @Entity
 @Table(name = "order_items")
 public class OrderItem {

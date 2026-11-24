@@ -7,9 +7,6 @@ import org.springframework.stereotype.Service;
 import ru.orderhub.order_management.entity.User;
 import ru.orderhub.order_management.repository.UserRepository;
 
-/**
- * Spring Security не знает про нашу таблицу users, поэтому учим его искать пользователя по email.
- */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -24,7 +21,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + email));
 
-        // roles("ADMIN") внутри добавит префикс ROLE_, получится ROLE_ADMIN.
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPassword())

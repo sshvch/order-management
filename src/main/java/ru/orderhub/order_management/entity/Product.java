@@ -27,10 +27,6 @@ public class Product {
     @Column(nullable = false)
     private Boolean active = true;
 
-    /**
-     * Много товаров может относиться к одной категории.
-     * LAZY — категория загружается только когда её реально используют.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;

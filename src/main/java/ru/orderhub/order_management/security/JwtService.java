@@ -13,10 +13,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-/**
- * Создание и проверка JWT.
- * Внутри токена лежат email (subject) и роль, сам пароль туда не попадает.
- */
 @Service
 public class JwtService {
 
@@ -25,7 +21,6 @@ public class JwtService {
 
     public JwtService(@Value("${jwt.secret}") String secret,
                       @Value("${jwt.expiration}") long expirationMs) {
-        // Ключ для подписи. Секрет должен быть не короче 32 символов.
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
     }
@@ -47,9 +42,6 @@ public class JwtService {
         return parseClaims(token).getSubject();
     }
 
-    /**
-     * true, если токен подписан нашим ключом, не просрочен и принадлежит этому пользователю.
-     */
     public boolean isValid(String token, UserDetails userDetails) {
         try {
             Claims claims = parseClaims(token);

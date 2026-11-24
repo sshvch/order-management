@@ -44,7 +44,6 @@ public class AuthService {
 
         User user = new User();
         user.setEmail(email);
-        // Пароль никогда не храним в открытом виде — только BCrypt-хеш.
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(Role.USER);
 
@@ -56,7 +55,6 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.email());
 
-        // Если пароль неверный, здесь будет BadCredentialsException → 401.
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(email, request.password())
         );

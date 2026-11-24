@@ -15,9 +15,6 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /**
-     * У каждого пользователя только одна корзина.
-     */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
@@ -31,17 +28,11 @@ public class Cart {
     public Cart() {
     }
 
-    /**
-     * Добавляет позицию в корзину и сразу проставляет обратную ссылку.
-     */
     public void addItem(CartItem item) {
         item.setCart(this);
         this.items.add(item);
     }
 
-    /**
-     * Очищает корзину. Благодаря orphanRemoval позиции удалятся из базы.
-     */
     public void clearItems() {
         this.items.clear();
     }

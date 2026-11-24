@@ -31,10 +31,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Интеграционные тесты: поднимают Spring-контекст, проходят через security-фильтры,
- * контроллеры и настоящие транзакции. Проверяют то, что не видно в unit-тестах с моками.
- */
 @SpringBootTest
 @AutoConfigureMockMvc
 class OrderManagementApiIntegrationTest {
@@ -65,10 +61,6 @@ class OrderManagementApiIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    /**
-     * Тесты не оборачиваются в общую транзакцию, поэтому чистим базу руками.
-     * Порядок важен: сначала то, что ссылается на другие таблицы.
-     */
     @BeforeEach
     void cleanDatabase() {
         orderRepository.deleteAll();
@@ -143,7 +135,6 @@ class OrderManagementApiIntegrationTest {
                 orderResult.getResponse().getContentAsString(), "$.totalAmount")).doubleValue();
         assertThat(total).isEqualTo(200.0);
 
-        // Каждый запрос к репозиторию — отдельная транзакция, поэтому данные свежие.
         assertThat(stockOf(productId)).isEqualTo(3);
         assertThat(cartRepository.findByUserEmail(userEmail).orElseThrow().getItems()).isEmpty();
         assertThat(orderRepository.count()).isEqualTo(1);
@@ -166,7 +157,6 @@ class OrderManagementApiIntegrationTest {
                                 """.formatted(productId)))
                 .andExpect(status().isOk());
 
-        // Пока товар лежал в корзине, его купили в параллельном запросе.
         Product product = productRepository.findById(productId).orElseThrow();
         product.setStockQuantity(0);
         productRepository.save(product);
@@ -176,8 +166,6 @@ class OrderManagementApiIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", containsString("Недостаточно товара")));
 
-        // Транзакция откатилась: заказ не создан, остаток не ушёл в минус,
-        // корзина осталась на месте.
         assertThat(stockOf(productId)).isZero();
         assertThat(orderRepository.count()).isZero();
         assertThat(cartRepository.findByUserEmail(userEmail).orElseThrow().getItems())

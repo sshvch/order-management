@@ -18,9 +18,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Обрабатывает ошибки в одном месте, чтобы контроллеры не были забиты try/catch.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -36,9 +33,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
     }
 
-    /**
-     * Ошибки валидации @Valid: например, пустой email или цена меньше нуля.
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException exception) {
         List<String> details = exception.getBindingResult().getFieldErrors().stream()
@@ -47,9 +41,6 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Ошибка валидации", details);
     }
 
-    /**
-     * Неверный email или пароль при логине.
-     */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException exception) {
         return build(HttpStatus.UNAUTHORIZED, "Неверный email или пароль", null);
@@ -75,26 +66,17 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, "Ресурс не найден", null);
     }
 
-    /**
-     * Например /api/orders/abc, где ожидается число.
-     */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
         return build(HttpStatus.BAD_REQUEST, "Некорректный параметр: " + exception.getName(), null);
     }
 
-    /**
-     * Например, попытка создать пользователя с уже существующим email в обход проверки.
-     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException exception) {
         log.warn("Data integrity violation: {}", exception.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "Данные конфликтуют с уже существующими", null);
     }
 
-    /**
-     * Всё, что не обработали выше. Подробности пишем в лог, клиенту отдаём общее сообщение.
-     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception exception) {
         log.error("Unexpected error", exception);
